@@ -23,6 +23,7 @@ app.UseExceptionHandler(exceptionHandlerApp =>
             context.Response.StatusCode = (int)opException.StatusCode;
             await context.Response.WriteAsync(opException.Message);
         }
+
         await context.Response.CompleteAsync();
     });
 });
@@ -32,7 +33,7 @@ app.MapPost("/event", (NewEvent request, AccountService service) => Results.Crea
 app.MapPost("/reset", (AccountService service) =>
 {
     service.Reset();
-    return Results.Ok("OK");
+    return Results.Content("OK");
 });
 
 app.Run();

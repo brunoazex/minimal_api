@@ -22,7 +22,7 @@ namespace RestApi.Services
 
         private AccountEvent HandleDepositRequest(NewEvent request)
         {
-            var destination = GetById(request.Destination);
+            var destination = GetById(request.Destination ?? throw new AccountServiceException());
             if (destination == null)
             {
                 destination = new Account(request.Destination);
@@ -35,32 +35,30 @@ namespace RestApi.Services
 
         private AccountEvent HandleWithdrawRequest(NewEvent request)
         {
-            var destination = GetById(request.Destination);
-            if (destination == null)
-                throw new AccountServiceException("0", HttpStatusCode.NotFound);
+            var origin = GetById(request.Origin ?? throw new AccountServiceException());
+            if (origin == null)
+                throw new AccountServiceException(HttpStatusCode.NotFound);
 
-            if (!destination.HasEnoughFunds(request.Amount))
-                throw new AccountServiceException("Não há saldo suficiente para o saque", HttpStatusCode.Forbidden);
+            if (!origin.HasEnoughFunds(request.Amount))
+                throw new AccountServiceException();
 
-            destination.Withdraw(request.Amount);
-            return AccountEvent.FromOrigin(destination);
+            origin.Withdraw(request.Amount);
+            return AccountEvent.FromOrigin(origin);
         }
 
         private AccountEvent HandleTransferRequest(NewEvent request)
         {
-            if (request.Origin is null)
-                throw new AccountServiceException("Conta de origem não informada", HttpStatusCode.UnprocessableEntity);
 
-            var origin = GetById(request.Origin);
+            var origin = GetById(request.Origin ?? throw new AccountServiceException());
             if (origin == null)
-                throw new AccountServiceException("0", HttpStatusCode.NotFound);
+                throw new AccountServiceException(HttpStatusCode.NotFound);
 
             if (!origin.HasEnoughFunds(request.Amount))
-                throw new AccountServiceException("Não há saldo suficiente para o saque", HttpStatusCode.Forbidden);
+                throw new AccountServiceException();
 
-            var destination = GetById(request.Destination);
+            var destination = GetById(request.Destination ?? throw new AccountServiceException());
             if (destination == null)
-                throw new AccountServiceException("0", HttpStatusCode.NotFound);
+                throw new AccountServiceException(HttpStatusCode.NotFound);
 
             origin.Transfer(destination, request.Amount);
             return AccountEvent.From(origin, destination);
@@ -70,19 +68,19 @@ namespace RestApi.Services
         public AccountEvent MakeOperation(NewEvent request)
         {
             if (request.Amount <= 0)
-                throw new AccountServiceException($"Valor inválido", HttpStatusCode.UnprocessableEntity);
+                throw new AccountServiceException();
 
             if (!_handlers.TryGetValue(request.Type.ToLowerInvariant(), out var handler))
-                throw new AccountServiceException($"Operação {request.Type} desconhecida", HttpStatusCode.UnprocessableEntity);
+                throw new AccountServiceException();
 
             return handler.Invoke(request);
         }
 
         public decimal GetBalance(string accountId)
         {
-            var account = GetById(accountId);
+            var account = GetById(accountId ?? throw new AccountServiceException());
             if (account == null)
-                throw new AccountServiceException("0", HttpStatusCode.NotFound);
+                throw new AccountServiceException(HttpStatusCode.NotFound);
             return account.Balance;
         }
 
