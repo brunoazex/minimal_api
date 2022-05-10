@@ -4,18 +4,27 @@ namespace RestApi.Models
 {
     public class AccountEvent
     {
-        public Account Origin { get; }
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public Account? Origin { get; }
 
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public Account? Destination { get; }
 
-        public AccountEvent(Account origin, Account? destination)
+        private AccountEvent(Account? destination, Account? origin)
         {
-            Origin = origin;
             Destination = destination;
+            Origin = origin;
         }
 
-        public AccountEvent(Account origin)
-            : this(origin, null) { }
+
+        public static AccountEvent FromOrigin(Account origin)
+            => new(destination: null, origin: origin);
+
+        public static AccountEvent FromDestination(Account destination)
+            => new(destination: destination, origin: null);
+
+        public static AccountEvent From(Account origin, Account destination)
+            => new(destination: destination, origin: origin);
+
     }
 }

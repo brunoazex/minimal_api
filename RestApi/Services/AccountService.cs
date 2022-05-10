@@ -30,20 +30,20 @@ namespace RestApi.Services
             }
 
             destination.Deposit(request.Amount);
-            return new AccountEvent(destination);
+            return AccountEvent.FromDestination(destination);
         }
 
         private AccountEvent HandleWithdrawRequest(NewEvent request)
         {
             var destination = GetById(request.Destination);
             if (destination == null)
-                throw new AccountServiceException("Conta de destino não encontrada", HttpStatusCode.NotFound);
+                throw new AccountServiceException("0", HttpStatusCode.NotFound);
 
             if (!destination.HasEnoughFunds(request.Amount))
                 throw new AccountServiceException("Não há saldo suficiente para o saque", HttpStatusCode.Forbidden);
 
             destination.Withdraw(request.Amount);
-            return new AccountEvent(destination);
+            return AccountEvent.FromOrigin(destination);
         }
 
         private AccountEvent HandleTransferRequest(NewEvent request)
@@ -53,17 +53,17 @@ namespace RestApi.Services
 
             var origin = GetById(request.Origin);
             if (origin == null)
-                throw new AccountServiceException("Conta de origem não encontrada", HttpStatusCode.NotFound);
+                throw new AccountServiceException("0", HttpStatusCode.NotFound);
 
             if (!origin.HasEnoughFunds(request.Amount))
                 throw new AccountServiceException("Não há saldo suficiente para o saque", HttpStatusCode.Forbidden);
 
             var destination = GetById(request.Destination);
             if (destination == null)
-                throw new AccountServiceException("Conta de destino não encontrada", HttpStatusCode.NotFound);
+                throw new AccountServiceException("0", HttpStatusCode.NotFound);
 
             origin.Transfer(destination, request.Amount);
-            return new AccountEvent(origin, destination);
+            return AccountEvent.From(origin, destination);
         }
 
 
@@ -82,7 +82,7 @@ namespace RestApi.Services
         {
             var account = GetById(accountId);
             if (account == null)
-                throw new AccountServiceException("Conta não encontrada", HttpStatusCode.NotFound);
+                throw new AccountServiceException("0", HttpStatusCode.NotFound);
             return account.Balance;
         }
 

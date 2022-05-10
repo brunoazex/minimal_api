@@ -50,7 +50,7 @@ namespace RestApiTests
         public void MakeOperationDeposit_ShouldCreateSuccessfully()
         {
             //Arrange
-            var expectedResult = new AccountEvent(new Account("100", 10));
+            var expectedResult = AccountEvent.FromDestination(new Account("100", 10));
             var service = new AccountService();
 
             //Act
@@ -63,7 +63,7 @@ namespace RestApiTests
         public void MakeOperationDeposit_ShouldActSuccessfully()
         {
             //Arrange
-            var expectedResult = new AccountEvent(new Account("100", 20));
+            var expectedResult = AccountEvent.FromDestination(new Account("100", 20));
             var service = new AccountService();
 
             //Act
@@ -79,7 +79,7 @@ namespace RestApiTests
         {
             //Arrange
             var mockedEvent = new NewEvent { Amount = 10, Destination = "100", Type = "withdraw" };
-            var expectedResult = new AccountEvent(new Account("100", 0));
+            var expectedResult = AccountEvent.FromOrigin(new Account("100", 0));
 
             var service = new AccountService();
             service.MakeOperation(new NewEvent { Amount = 10, Destination = "100", Type = "deposit" });
@@ -96,7 +96,7 @@ namespace RestApiTests
         {
             //Arrange
             var mockedEvent = new NewEvent { Amount = 10, Origin = "100", Destination = "200", Type = "transfer" };
-            var expectedResult = new AccountEvent(new Account("100"), new Account("200", 20));
+            var expectedResult = AccountEvent.From(new Account("100"), new Account("200", 20));
 
             var service = new AccountService();
             service.MakeOperation(new NewEvent { Amount = 10, Destination = "100", Type = "deposit" });
