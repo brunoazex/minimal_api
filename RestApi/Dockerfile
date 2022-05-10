@@ -9,8 +9,8 @@ FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build
 WORKDIR /src
 COPY ["RestApi.csproj", "RestApi/"]
 RUN dotnet restore "RestApi/RestApi.csproj"
-COPY . .
 WORKDIR "/src/RestApi"
+COPY . .
 RUN dotnet build "RestApi.csproj" -c Release -o /app/build
 
 FROM build AS publish
