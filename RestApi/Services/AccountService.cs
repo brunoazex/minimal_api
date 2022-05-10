@@ -58,7 +58,10 @@ namespace RestApi.Services
 
             var destination = GetById(request.Destination ?? throw new AccountServiceException());
             if (destination == null)
-                throw new AccountServiceException(HttpStatusCode.NotFound);
+            {
+                destination = new Account(request.Destination);
+                _repository.Add(destination);
+            }
 
             origin.Transfer(destination, request.Amount);
             return AccountEvent.From(origin, destination);
