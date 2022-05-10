@@ -4,16 +4,17 @@ name: Deploy
 # Run workflow on every push to master branch.
 on:
   push:
+  pull_request:
     branches: [main]
 
 # Your workflows jobs.
 jobs:
   test:
-    name: build-and-test-${{matrix.os}}
+    name: test-on-${{matrix.os}}
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest, macOS-latest]
+        os: [ubuntu-latest, windows-latest]
 
     steps:
     - uses: actions/checkout@v2
