@@ -78,8 +78,8 @@ namespace RestApiTests
         public void MakeOperationWithdraw_ShouldActSuccessfully()
         {
             //Arrange
-            var mockedEvent = new NewEvent { Amount = 10, Destination = "100", Type = "withdraw" };
-            var expectedResult = AccountEvent.FromOrigin(new Account("100", 0));
+            var mockedEvent = new NewEvent { Amount = 10, Origin = "100", Type = "withdraw" };
+            var expectedResult = AccountEvent.FromOrigin(new Account("100"));
 
             var service = new AccountService();
             service.MakeOperation(new NewEvent { Amount = 10, Destination = "100", Type = "deposit" });
