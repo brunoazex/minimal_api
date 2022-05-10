@@ -10,12 +10,8 @@ on:
 # Your workflows jobs.
 jobs:
   test:
-    name: test-on-${{matrix.os}}
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [ubuntu-latest, windows-latest]
-
+    name: Unit test
+    runs-on: ubuntu
     steps:
     - uses: actions/checkout@v2
     - name: Setup .NET Core
@@ -28,6 +24,7 @@ jobs:
     - name: Test
       run: dotnet test --no-restore --verbosity normal
   build:
+    needs: test
     runs-on: ubuntu-latest
     steps:
       # Check-out your repository.
