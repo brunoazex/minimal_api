@@ -25,32 +25,37 @@ namespace RestApiTests
             var expectedAmount = 10m;
             var mockedDestination = "100";
             var service = new AccountService();
-
+            var expectedResult = ServiceResult.Success(data: expectedAmount);
             //Act
             service.MakeOperation(new NewEvent { Amount = expectedAmount, Destination = mockedDestination, Type = "deposit" });
             var result = service.GetBalance(mockedDestination);
 
             //Assert
-            _comparison.Compare(expectedAmount, result).AreEqual.Should().BeTrue();
+            _comparison.Compare(expectedResult, result).AreEqual.Should().BeTrue();
         }
 
         [TestMethod]
         [DataRow("100")]
-        [DataRow(null)]
+        [DataRow("200")]
         public void GetBalance_ShouldRaiseException(string invalidAccount)
         {
             //Arrange
+            var expectedResult = ServiceResult.Error(System.Net.HttpStatusCode.NotFound);
             var service = new AccountService();
 
-            //Act - Assert
-            Assert.ThrowsException<AccountServiceException>(() => service.GetBalance(invalidAccount));
+            //Act
+            var result = service.GetBalance(invalidAccount);
+
+            // Assert
+
+            _comparison.Compare(expectedResult, result).AreEqual.Should().BeTrue();
         }
 
         [TestMethod]
         public void MakeOperationDeposit_ShouldCreateSuccessfully()
         {
             //Arrange
-            var expectedResult = AccountEvent.FromDestination(new Account("100", 10));
+            var expectedResult = ServiceResult.Success(System.Net.HttpStatusCode.Created, AccountEvent.FromDestination(new Account("100", 10)));
             var service = new AccountService();
 
             //Act
@@ -63,7 +68,7 @@ namespace RestApiTests
         public void MakeOperationDeposit_ShouldActSuccessfully()
         {
             //Arrange
-            var expectedResult = AccountEvent.FromDestination(new Account("100", 20));
+            var expectedResult = ServiceResult.Success(System.Net.HttpStatusCode.Created, AccountEvent.FromDestination(new Account("100", 20)));
             var service = new AccountService();
 
             //Act
@@ -79,7 +84,7 @@ namespace RestApiTests
         {
             //Arrange
             var mockedEvent = new NewEvent { Amount = 10, Origin = "100", Type = "withdraw" };
-            var expectedResult = AccountEvent.FromOrigin(new Account("100"));
+            var expectedResult = ServiceResult.Success(System.Net.HttpStatusCode.Created, AccountEvent.FromOrigin(new Account("100")));
 
             var service = new AccountService();
             service.MakeOperation(new NewEvent { Amount = 10, Destination = "100", Type = "deposit" });
@@ -96,7 +101,7 @@ namespace RestApiTests
         {
             //Arrange
             var mockedEvent = new NewEvent { Amount = 10, Origin = "100", Destination = "200", Type = "transfer" };
-            var expectedResult = AccountEvent.From(new Account("100"), new Account("200", 20));
+            var expectedResult = ServiceResult.Success(System.Net.HttpStatusCode.Created, AccountEvent.From(new Account("100"), new Account("200", 20)));
 
             var service = new AccountService();
             service.MakeOperation(new NewEvent { Amount = 10, Destination = "100", Type = "deposit" });
@@ -120,9 +125,13 @@ namespace RestApiTests
             var mockedRequest = new NewEvent { Amount = Convert.ToDecimal(amount), Destination = "100", Type = type };
             var service = new AccountService();
             service.MakeOperation(new NewEvent { Amount = 10, Destination = "100", Type = "deposit" });
+            var expectedResult = ServiceResult.Error(System.Net.HttpStatusCode.UnprocessableEntity);
 
-            //Act - Assert
-            Assert.ThrowsException<AccountServiceException>(() => service.MakeOperation(mockedRequest));
+            //Act
+            var result = service.MakeOperation(mockedRequest);
+
+            // Assert
+            _comparison.Compare(expectedResult, result).AreEqual.Should().BeTrue();
         }
     }
 }

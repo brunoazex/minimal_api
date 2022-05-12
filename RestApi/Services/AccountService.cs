@@ -6,11 +6,11 @@ namespace RestApi.Services
     public class AccountService
     {
         private readonly List<Account> _repository;
-        private readonly Dictionary<string, Func<NewEvent, AccountEvent>> _handlers;
+        private readonly Dictionary<string, Func<NewEvent, ServiceResult>> _handlers;
         public AccountService()
         {
             _repository = new List<Account>();
-            _handlers = new Dictionary<string, Func<NewEvent, AccountEvent>>
+            _handlers = new Dictionary<string, Func<NewEvent, ServiceResult>>
             {
                 { "deposit", HandleDepositRequest },
                 { "withdraw", HandleWithdrawRequest },
@@ -20,7 +20,7 @@ namespace RestApi.Services
         private Account? GetById(string accountId)
             => _repository.SingleOrDefault(acc => acc.Id == accountId);
 
-        private AccountEvent HandleDepositRequest(NewEvent request)
+        private ServiceResult HandleDepositRequest(NewEvent request)
         {
             var destination = GetById(request.Destination ?? throw new AccountServiceException());
             if (destination == null)
@@ -30,31 +30,27 @@ namespace RestApi.Services
             }
 
             destination.Deposit(request.Amount);
-            return AccountEvent.FromDestination(destination);
+            return ServiceResult.Success(HttpStatusCode.Created, AccountEvent.FromDestination(destination));
         }
 
-        private AccountEvent HandleWithdrawRequest(NewEvent request)
+        private ServiceResult HandleWithdrawRequest(NewEvent request)
         {
             var origin = GetById(request.Origin ?? throw new AccountServiceException());
             if (origin == null)
-                throw new AccountServiceException(HttpStatusCode.NotFound);
+                return ServiceResult.Error(HttpStatusCode.NotFound);
 
             if (!origin.HasEnoughFunds(request.Amount))
-                throw new AccountServiceException();
+                return ServiceResult.Error(HttpStatusCode.UnprocessableEntity);
 
             origin.Withdraw(request.Amount);
-            return AccountEvent.FromOrigin(origin);
+            return ServiceResult.Success(HttpStatusCode.Created, AccountEvent.FromOrigin(origin));
         }
 
-        private AccountEvent HandleTransferRequest(NewEvent request)
+        private ServiceResult HandleTransferRequest(NewEvent request)
         {
-
             var origin = GetById(request.Origin ?? throw new AccountServiceException());
             if (origin == null)
-                throw new AccountServiceException(HttpStatusCode.NotFound);
-
-            if (!origin.HasEnoughFunds(request.Amount))
-                throw new AccountServiceException();
+                return ServiceResult.Error(HttpStatusCode.NotFound);
 
             var destination = GetById(request.Destination ?? throw new AccountServiceException());
             if (destination == null)
@@ -64,30 +60,33 @@ namespace RestApi.Services
             }
 
             origin.Transfer(destination, request.Amount);
-            return AccountEvent.From(origin, destination);
+            return ServiceResult.Success(HttpStatusCode.Created, AccountEvent.From(origin, destination));
         }
 
 
-        public AccountEvent MakeOperation(NewEvent request)
+        public ServiceResult MakeOperation(NewEvent request)
         {
             if (request.Amount <= 0)
-                throw new AccountServiceException();
+                return ServiceResult.Error(HttpStatusCode.UnprocessableEntity);
 
             if (!_handlers.TryGetValue(request.Type.ToLowerInvariant(), out var handler))
-                throw new AccountServiceException();
+                return ServiceResult.Error(HttpStatusCode.UnprocessableEntity);
 
             return handler.Invoke(request);
         }
 
-        public decimal GetBalance(string accountId)
+        public ServiceResult GetBalance(string accountId)
         {
             var account = GetById(accountId ?? throw new AccountServiceException());
             if (account == null)
-                throw new AccountServiceException(HttpStatusCode.NotFound);
-            return account.Balance;
+                return ServiceResult.Error(HttpStatusCode.NotFound);
+            return ServiceResult.Success(data: account.Balance);
         }
 
-        public void Reset()
-            => _repository.Clear();
+        public ServiceResult Reset()
+        {
+            _repository.Clear();
+            return ServiceResult.Success();
+        }
     }
 }
