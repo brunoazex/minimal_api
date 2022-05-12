@@ -7,6 +7,8 @@ using Moq.AutoMock;
 using RestApi.Models;
 using RestApi.Modules;
 using RestApi.Services;
+using System.Collections.Generic;
+using System.Text.Json;
 
 namespace RestApiTests
 {
@@ -171,6 +173,37 @@ namespace RestApiTests
 
             // Act
             var result = module.HandleReset();
+
+            // Assert
+            _comparison.Compare(expectedResult, result).AreEqual.Should().BeTrue();
+            mock.Verify();
+
+
+        }
+        [TestMethod]
+        public void Test_HandleGetAccounts()
+        {
+            // Arrange
+            var mock = new AutoMocker();
+            var mockedAccounts = new List<Account>
+            {
+                new Account("100", 10),
+                new Account("200", 20),
+                new Account("300", 30),
+            };
+
+            var expectedResult = Results.Json(mockedAccounts, statusCode: 200);
+
+            mock
+                .GetMock<IAccountService>()
+                .Setup(svc => svc.GetAccounts())
+                .Returns(ServiceResult.Success(data: mockedAccounts))
+                .Verifiable();
+
+            var module = new TransactionModule(mock.GetMock<IAccountService>().Object);
+
+            // Act
+            var result = module.HandleGetAccounts();
 
             // Assert
             _comparison.Compare(expectedResult, result).AreEqual.Should().BeTrue();

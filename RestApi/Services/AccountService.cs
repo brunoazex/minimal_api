@@ -100,5 +100,10 @@ namespace RestApi.Services
             _repository.Clear();
             return ServiceResult.Success();
         }
+
+        public ServiceResult GetAccounts()
+        {
+            return ServiceResult.Success(data: _repository.ToList());
+        }
     }
 }

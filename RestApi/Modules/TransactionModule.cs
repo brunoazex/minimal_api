@@ -16,6 +16,7 @@ namespace RestApi.Modules
 
         public void AddRoutes(IEndpointRouteBuilder app)
         {
+            app.MapGet("/accounts", HandleGetAccounts);
             app.MapGet("/balance", HandleBalance);
             app.MapPost("/event", HandleEvent);
             app.MapPost("/reset", HandleReset);
@@ -40,6 +41,12 @@ namespace RestApi.Modules
         {
             var result = _accountService.Reset();
             return Results.StatusCode((int)result.StatusCode);
+        }
+
+        public IResult HandleGetAccounts()
+        {
+            var result = _accountService.GetAccounts();
+            return Results.Json(result.Data, statusCode: (int)result.StatusCode);
         }
     }
 }
