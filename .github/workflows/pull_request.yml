@@ -1,0 +1,24 @@
+name: Tests
+
+on:  
+  push:
+  pull_request_review:
+    types: [submitted]
+    branches: [main]
+    
+jobs:
+  test:
+    if: github.event.review.state == 'approved'
+    name: test
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Setup .NET Core
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}
+
+    - name: Install dependencies
+      run: dotnet restore
+    - name: Test
+      run: dotnet test --no-restore --verbosity normal
