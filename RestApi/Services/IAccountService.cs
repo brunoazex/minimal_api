@@ -7,5 +7,6 @@ namespace RestApi.Services
         ServiceResult GetBalance(string accountId);
         ServiceResult MakeOperation(NewEvent request);
         ServiceResult Reset();
+        ServiceResult GetAccounts();
     }
 }
