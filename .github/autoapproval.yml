@@ -2,3 +2,5 @@ from_owner:
   - brunoazex
 required_labels:
   - ready
+apply_labels:
+  - merge
