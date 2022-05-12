@@ -7,9 +7,9 @@ namespace RestApi.Modules
 {
     public class TransactionModule : ICarterModule
     {
-        private readonly AccountService _accountService;
+        private readonly IAccountService _accountService;
 
-        public TransactionModule(AccountService accountService)
+        public TransactionModule(IAccountService accountService)
         {
             _accountService = accountService;
         }
@@ -30,9 +30,7 @@ namespace RestApi.Modules
             return Results.Json(result.Data, statusCode: (int)result.StatusCode);
         }
 
-        public IResult HandleEvent(
-            NewEvent request
-        )
+        public IResult HandleEvent(NewEvent request)
         {
             var result = _accountService.MakeOperation(request);
             return Results.Json(result.Data, statusCode: (int)result.StatusCode);
