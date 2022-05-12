@@ -1,12 +1,17 @@
 using Microsoft.AspNetCore.Diagnostics;
 using RestApi.Services;
-using RestApi.Models;
-using Microsoft.AspNetCore.Mvc;
+using Carter;
 
 var builder = WebApplication.CreateBuilder(args);
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
+builder.Services.AddCarter();
 builder.Services.AddSingleton<AccountService>();
 
 var app = builder.Build();
+
+app.UseSwagger();
+app.UseSwaggerUI();
 
 app.UseHttpsRedirection();
 
@@ -28,12 +33,5 @@ app.UseExceptionHandler(exceptionHandlerApp =>
     });
 });
 
-app.MapGet("/balance", ([FromQuery(Name = "account_id")] string accountId, AccountService service) => Results.Ok(service.GetBalance(accountId)));
-app.MapPost("/event", (NewEvent request, AccountService service) => Results.Created("balance", service.MakeOperation(request)));
-app.MapPost("/reset", (AccountService service) =>
-{
-    service.Reset();
-    return Results.Content("OK");
-});
-
+app.MapCarter();
 app.Run();
