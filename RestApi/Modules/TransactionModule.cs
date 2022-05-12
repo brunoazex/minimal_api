@@ -26,20 +26,22 @@ namespace RestApi.Modules
             [FromQuery(Name = "account_id")]
             string accountId)
         {
-            return Results.Ok(_accountService.GetBalance(accountId));
+            var result = _accountService.GetBalance(accountId);
+            return Results.Json(result.Data, statusCode: (int)result.StatusCode);
         }
 
         public IResult HandleEvent(
             NewEvent request
         )
         {
-            return Results.Created("balance", _accountService.MakeOperation(request));
+            var result = _accountService.MakeOperation(request);
+            return Results.Json(result.Data, statusCode: (int)result.StatusCode);
         }
 
         public IResult HandleReset()
         {
-            _accountService.Reset();
-            return Results.Content("OK");
+            var result = _accountService.Reset();
+            return Results.StatusCode((int)result.StatusCode);
         }
     }
 }
