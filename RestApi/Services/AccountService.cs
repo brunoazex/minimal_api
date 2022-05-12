@@ -3,7 +3,7 @@ using System.Net;
 
 namespace RestApi.Services
 {
-    public class AccountService
+    public class AccountService : IAccountService
     {
         private readonly List<Account> _repository;
         private readonly Dictionary<string, Func<NewEvent, ServiceResult>> _handlers;
@@ -22,7 +22,10 @@ namespace RestApi.Services
 
         private ServiceResult HandleDepositRequest(NewEvent request)
         {
-            var destination = GetById(request.Destination ?? throw new AccountServiceException());
+            if (request.Destination is null)
+                return ServiceResult.Error(HttpStatusCode.UnprocessableEntity);
+
+            var destination = GetById(request.Destination);
             if (destination == null)
             {
                 destination = new Account(request.Destination);
@@ -35,7 +38,10 @@ namespace RestApi.Services
 
         private ServiceResult HandleWithdrawRequest(NewEvent request)
         {
-            var origin = GetById(request.Origin ?? throw new AccountServiceException());
+            if (request.Origin is null)
+                return ServiceResult.Error(HttpStatusCode.UnprocessableEntity);
+
+            var origin = GetById(request.Origin);
             if (origin == null)
                 return ServiceResult.Error(HttpStatusCode.NotFound);
 
@@ -48,11 +54,14 @@ namespace RestApi.Services
 
         private ServiceResult HandleTransferRequest(NewEvent request)
         {
-            var origin = GetById(request.Origin ?? throw new AccountServiceException());
+            if (request.Origin is null || request.Destination is null)
+                return ServiceResult.Error(HttpStatusCode.UnprocessableEntity);
+
+            var origin = GetById(request.Origin);
             if (origin == null)
                 return ServiceResult.Error(HttpStatusCode.NotFound);
 
-            var destination = GetById(request.Destination ?? throw new AccountServiceException());
+            var destination = GetById(request.Destination);
             if (destination == null)
             {
                 destination = new Account(request.Destination);
@@ -77,7 +86,10 @@ namespace RestApi.Services
 
         public ServiceResult GetBalance(string accountId)
         {
-            var account = GetById(accountId ?? throw new AccountServiceException());
+            if (accountId is null)
+                return ServiceResult.Error(HttpStatusCode.UnprocessableEntity);
+
+            var account = GetById(accountId);
             if (account == null)
                 return ServiceResult.Error(HttpStatusCode.NotFound);
             return ServiceResult.Success(data: account.Balance);
