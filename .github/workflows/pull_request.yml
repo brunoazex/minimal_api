@@ -1,14 +1,11 @@
-name: Tests
-
+name: Tests and Code coverage
 on:  
   pull_request_review:
     types: [submitted]
     branches: [main]
-    
 jobs:
-  test:
+  prepare:
     if: github.event.review.state == 'approved'
-    name: test
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
@@ -16,12 +13,19 @@ jobs:
       uses: actions/setup-dotnet@v1
       with:
         dotnet-version: ${{ env.DOTNET_VERSION }}
-
     - name: Install dependencies
       run: dotnet restore
     - name: Build
       run: dotnet build --configuration Release --no-restore
+  test:
+    needs: prepare
+    runs-on: ubuntu-latest
+    steps:
     - name: Test
       run: dotnet test --configuration Release --no-restore --no-build --verbosity normal --collect:"XPlat Code Coverage"
+  report:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
     - name: Report Codecov
       uses: codecov/codecov-action@v3
