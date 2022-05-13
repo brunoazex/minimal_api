@@ -1,4 +1,4 @@
-name: Tests and Code coverage
+name: Code Quality
 on:  
   pull_request_review:
     types: [submitted]
