@@ -20,4 +20,6 @@ jobs:
     - name: Install dependencies
       run: dotnet restore
     - name: Test
-      run: dotnet test --no-restore --verbosity normal
+      run: dotnet test --configuration Release --no-restore --no-build --verbosity normal --collect:"XPlat Code Coverage"
+    - name: Report Codecov
+      uses: codecov/codecov-action@v3
